@@ -4,13 +4,16 @@ WORKDIR /app
 # Installer pnpm
 RUN corepack enable && corepack prepare pnpm@latest --activate
 # Copier les fichiers de configuration
-COPY package.json pnpm-lock.yaml ./
+COPY package.json package-lock.json* ./
+
 # Installer les dépendances
-RUN pnpm install --frozen-lockfile
+RUN npm install
+
 # Copier le code source
 COPY . .
+
 # Builder l'application
-RUN pnpm run build
+RUN npm run build
 
 # Stage 2: Production
 FROM node:20-alpine
@@ -23,5 +26,6 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./
 # Exposer le port
 EXPOSE 3000
+
 # Démarrer l'application
-CMD ["pnpm", "run", "start:prod"]
+CMD ["node", "dist/main"]
